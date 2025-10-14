@@ -28,9 +28,11 @@ pipeline {
     //   }
     // }
 
-    stage('Build Application') {
+  stage('Build Application') {
   steps {
-    sh 'mvn clean package -DskipTests'
+    dir('todo-springboot') {
+      sh 'mvn clean package -DskipTests'
+    }
   }
 }
 
