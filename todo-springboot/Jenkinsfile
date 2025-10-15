@@ -53,17 +53,24 @@ pipeline {
       }
     }
  
-    stage('Deploy to EKS') {
-      steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
-          sh """
-            aws eks update-kubeconfig --name todo-app-project --region $AWS_REGION
-            kubectl apply -f todo-springboot/k8s/deployment.yaml
-            kubectl apply -f todo-springboot/k8s/service.yaml
-          """
-        }
-      }
+  stage('Deploy to EKS') {
+  environment {
+    AWS_REGION = 'us-east-1'
+    EKS_CLUSTER_NAME = 'project-eks'
+  }
+  steps {
+    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+      sh """
+        echo "Updating kubeconfig for cluster: $EKS_CLUSTER_NAME in region: $AWS_REGION"
+        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+        echo "Applying Kubernetes manifests..."
+        kubectl apply -f todo-springboot/k8s/deployment.yaml
+        kubectl apply -f todo-springboot/k8s/service.yaml
+      """
     }
+  }
+}
  
     stage('Smoke Test') {
       steps {
